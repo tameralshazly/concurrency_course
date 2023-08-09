@@ -54,11 +54,17 @@ extension EmptyOnError<E> on Future<List<Iterable<E>>> {
       );
 }
 
+extension EmptyOnErrorOnFuture<E> on Future<Iterable<E>> {
+  Future<Iterable<E>> emptyOnError() => catchError(
+        (_, __) => Iterable<E>.empty(),
+      );
+}
+
 void testIt() async {
   final persons = await Future.wait([
-    parseJson(people1Url),
-    parseJson(people1Url),
-  ]).emptyOnError();
+    parseJson(people1Url).emptyOnError(),
+    parseJson(people2Url).emptyOnError(),
+  ]);
   persons.log();
 }
 
