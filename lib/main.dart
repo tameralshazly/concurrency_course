@@ -38,17 +38,27 @@ class Person {
   String toString() => 'Person ($name, $age years old)';
 }
 
-const url = 'http://172.20.10.5:5500/api/people.json';
+const people1Url = 'http://172.20.10.5:5500/api/people5.json';
+const people2Url = 'http://172.20.10.5:5500/api/people2.json';
 
-Future<Iterable<Person>> parseJson() => HttpClient()
+Future<Iterable<Person>> parseJson(String url) => HttpClient()
     .getUrl(Uri.parse(url))
     .then((request) => request.close())
     .then((response) => response.transform(utf8.decoder).join())
     .then((string) => json.decode(string) as List<dynamic>)
     .then((json) => json.map((e) => Person.fromJson(e)));
 
+extension EmptyOnError<E> on Future<List<Iterable<E>>> {
+  Future<List<Iterable<E>>> emptyOnError() => catchError(
+        (_, __) => List<Iterable<E>>.empty(),
+      );
+}
+
 void testIt() async {
-  final persons = await parseJson();
+  final persons = await Future.wait([
+    parseJson(people1Url),
+    parseJson(people1Url),
+  ]).emptyOnError();
   persons.log();
 }
 
