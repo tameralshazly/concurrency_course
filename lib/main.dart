@@ -61,11 +61,18 @@ extension EmptyOnErrorOnFuture<E> on Future<Iterable<E>> {
 }
 
 void testIt() async {
-  final persons = await Future.wait([
-    parseJson(people1Url).emptyOnError(),
-    parseJson(people2Url).emptyOnError(),
-  ]);
-  persons.log();
+  final result = await Future.forEach(
+    Iterable.generate(
+        2, (i) => 'http://172.20.10.5:5500/api/people${i + 1}.json'),
+    parseJson,
+  ).catchError((_, __) => -1);
+
+  // this code is not working, since the result will
+  // produce a void, so we will see if it is resolved later!!
+
+  // if (result != null) {
+  //   'Error occured'.log();
+  // }
 }
 
 class HomePage extends StatelessWidget {
