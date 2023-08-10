@@ -1,4 +1,3 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:developer' as devtools show log;
 import 'dart:io';
 import 'dart:convert';
@@ -38,7 +37,7 @@ class Person {
   String toString() => 'Person ($name, $age years old)';
 }
 
-const people1Url = 'http://172.20.10.5:5500/api/people5.json';
+const people1Url = 'http://172.20.10.5:5500/api/people1.json';
 const people2Url = 'http://172.20.10.5:5500/api/people2.json';
 
 Future<Iterable<Person>> parseJson(String url) => HttpClient()
@@ -61,18 +60,16 @@ extension EmptyOnErrorOnFuture<E> on Future<Iterable<E>> {
 }
 
 void testIt() async {
-  final result = await Future.forEach(
-    Iterable.generate(
-        2, (i) => 'http://172.20.10.5:5500/api/people${i + 1}.json'),
-    parseJson,
-  ).catchError((_, __) => -1);
+  await for (final persons in getPersons()) {
+    persons.log();
+  }
+}
 
-  // this code is not working, since the result will
-  // produce a void, so we will see if it is resolved later!!
-
-  // if (result != null) {
-  //   'Error occured'.log();
-  // }
+Stream<Iterable<Person>> getPersons() async* {
+  for (final url in Iterable.generate(
+      2, (i) => 'http://172.20.10.5:5500/api/people${i + 1}.json')) {
+    yield await parseJson(url);
+  }
 }
 
 class HomePage extends StatelessWidget {
