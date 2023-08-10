@@ -57,16 +57,14 @@ class GetPeople with ListOfThingsAPI<Map<String, dynamic>> {
 }
 
 void testIt() async {
-  final people =
-      await GetApiEndPoints().get('http://172.20.10.5:5500/api/apis.json').then(
-            (urls) => Future.wait(
-              urls.map(
-                (url) => GetPeople().getPeople(url),
-              ),
-            ),
-          );
-
-  people.log();
+  await for (final people
+      in Stream.periodic(const Duration(seconds: 3)).asyncExpand(
+    (_) => GetPeople()
+        .getPeople('http://172.20.10.5:5500/api/people1.json')
+        .asStream(),
+  )) {
+    people.log();
+  }
 }
 
 class HomePage extends StatelessWidget {
