@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'dart:developer' as devtools show log;
 import 'dart:io';
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 
@@ -56,16 +58,58 @@ class GetPeople with ListOfThingsAPI<Map<String, dynamic>> {
       );
 }
 
+const names = ['foo', 'bar', 'baz'];
+
+extension RandomElement<T> on Iterable<T> {
+  T getRandomElement() => elementAt(Random().nextInt(length));
+}
+
+class UpperCaseSink implements EventSink<String> {
+  final EventSink<String> _sink;
+
+  const UpperCaseSink(this._sink);
+
+  @override
+  void add(String event) => _sink.add(event.toUpperCase());
+
+  @override
+  void addError(Object error, [StackTrace? stackTrace]) =>
+      _sink.addError(error, stackTrace);
+
+  @override
+  void close() => _sink.close();
+}
+
+class StreamTransformUpperCaseString
+    extends StreamTransformerBase<String, String> {
+  @override
+  Stream<String> bind(
+    Stream<String> stream,
+  ) =>
+      Stream<String>.eventTransformed(
+        stream,
+        (sink) => UpperCaseSink(sink),
+      );
+}
+
 void testIt() async {
-  await for (final people
-      in Stream.periodic(const Duration(seconds: 3)).asyncExpand(
-    (_) => GetPeople()
-        .getPeople('http://172.20.10.5:5500/api/people1.json')
-        .asStream(),
-  )) {
-    people.log();
+  await for (var name in Stream.periodic(
+    const Duration(seconds: 1),
+    (_) => names.getRandomElement(),
+  ).transform(StreamTransformUpperCaseString())) {
+    name.log();
   }
 }
+// void testIt() async {
+//   await for (final people
+//       in Stream.periodic(const Duration(seconds: 3)).asyncExpand(
+//     (_) => GetPeople()
+//         .getPeople('http://172.20.10.5:5500/api/people1.json')
+//         .asStream(),
+//   )) {
+//     people.log();
+//   }
+// }
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
